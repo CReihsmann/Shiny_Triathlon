@@ -1,0 +1,51 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(shiny)
+library(httr)
+library(rjson)
+```
+
+
+```{r}
+result <- fromJSON(file = "../data/data.json")
+api_key <- result[["api_key"]]
+apikey
+```
+```{r}
+url = 'https://api.triathlon.org/'
+
+params = list(
+  'event_id' = '90162',
+  'prog_id' = '270564'
+)
+
+
+response <- GET(modify_url(url, path = paste("v1/","events/", 
+                                             params["event_id"], 
+                                             "/programs/", 
+                                             params["prog_id"], 
+                                             "/results",
+                                             sep = "")), 
+                add_headers(.headers = 
+                                c(Accept= "application/json",
+                                   apikey = "9f443da70aebfa2353fb5367eb675a6f")
+                )
+)
+
+#murals <- content(response, as = 'parsed') 
+```
+
+```{r}
+response$status_code
+```
+```{r}
+event <- content(response, as = "parsed")
+parsed_event <- do.call(rbind, event)
+indiv <- parsed_event[3, 7]
+```
+
