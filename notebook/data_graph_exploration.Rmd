@@ -1,0 +1,43 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(plotly)
+```
+
+```{r}
+triathlon_data <- read_csv("../data/all_results.csv")
+```
+
+```{r}
+triathlon_data <- triathlon_data %>% 
+    select(-value)
+
+triathlon_data <- triathlon_data %>% 
+    mutate(athlete_yob = as.numeric(athlete_yob))
+```
+```{r}
+triathlon_data <- triathlon_data %>% 
+    mutate(prog_year = as.numeric(format(prog_date, "%Y")),
+           athlete_age = prog_year - athlete_yob)
+```
+
+```{r}
+triathlon_data %>% 
+    filter(cat_name != "standard") %>% 
+    group_by(prog_year) %>% 
+    summarize(mean_swim = mean(swim_time, na.rm = TRUE)) %>% 
+    ggplot(aes(x = prog_year, y = mean_swim)) +
+    geom_line() +
+    scale_x_continuous(breaks = c(2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019 )) +
+    scale_y_time()
+```
+```{r}
+triathlon_data %>% 
+    group_by(prog_year) %>% 
+    summarize(sum_cat = sum(length(unique(cat_name))))
+```
+
