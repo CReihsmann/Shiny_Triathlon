@@ -23,3 +23,9 @@ average_line <- triathlon_data
 cbp1 <- c("#999999", "#E69F00", "#56B4E9", "#009E73",
           "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
                           
+triathlon_data <- triathlon_data %>% 
+    mutate(temp_air = (temp_air*(9/5)+32),
+           temp_water = (temp_water*(9/5)+32),
+           swim_time = hms::as_hms(swim_time),
+           bike_time = hms::as_hms(bike_time),
+           run_time = hms::as_hms(run_time))

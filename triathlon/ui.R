@@ -46,8 +46,8 @@ shinyUI(fluidPage(
                      sliderInput("slider_position",
                                  "Finishing Position: ",
                                  min = 1,
-                                 max = 70,
-                                 value = c(1, 70)
+                                 max = 100,
+                                 value = c(1, 100)
                      )
                      
         ),
@@ -81,7 +81,27 @@ shinyUI(fluidPage(
                 ),
                 tabPanel("Race Components",
                          tabsetPanel(
-                             tabPanel("Swim"),
+                             tabPanel("Swim",
+                                      fluidRow(
+                                          column(width = 3,
+                                                 checkboxGroupInput("wetsuit",
+                                                                    "Wetsuit: ",
+                                                                    list("Yes" = TRUE,
+                                                                         "No" = FALSE),
+                                                                    selected = FALSE),
+                                                 sliderInput("water_temp",
+                                                             "Water Temperature (F): ",
+                                                             min = min(triathlon_data$temp_water, na.rm = T),
+                                                             max = max(triathlon_data$temp_water, na.rm = T),
+                                                             value = c(52, 86))),
+                                          column(width = 9,
+                                                 plotOutput("swim_pointPlot"))
+                                      ),
+                                      fluidRow(
+                                          column(width = 12,
+                                                 plotOutput("swim_densityPlot"))
+                                      )
+                                      ),
                              tabPanel("Bike"),
                              tabPanel("Run")
                          )),
