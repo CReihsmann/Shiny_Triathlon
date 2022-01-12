@@ -17,7 +17,7 @@ shinyUI(fluidPage(
     
     # Sidebar with a slider input for number of bins
     sidebarLayout(
-        sidebarPanel(width = 4,
+        sidebarPanel(width = 3,
                      radioButtons("race_type",
                                   "Race Type: ",
                                   choices = list("Olympic" = "Standard",
@@ -43,12 +43,6 @@ shinyUI(fluidPage(
                                     multiple = TRUE
                                     
                      ),
-                     selectizeInput("race_region",
-                                    "Region of Event: ",
-                                    choices = unique(triathlon_data$event_region_name),
-                                    multiple = TRUE
-                                    
-                     ),
                      sliderInput("slider_position",
                                  "Finishing Position: ",
                                  min = 1,
@@ -63,11 +57,8 @@ shinyUI(fluidPage(
             tabsetPanel(
                 tabPanel("Overall Race",
                          fluidRow(
-                             column(width = 7,
-                                    plotOutput("linePlot")),
-                             column(width = 5,
-                                    plotOutput("barPlot"))
-                         ),
+                             column(width = 12,
+                                    plotOutput("linePlot"))),
                          fluidRow(
                              column(width = 5,
                                     plotOutput("totaltime_boxPlot")),
@@ -79,7 +70,8 @@ shinyUI(fluidPage(
                                                      "Year ",
                                                      min = 2009,
                                                      max = 2019,
-                                                     value = c(2009, 20219)
+                                                     value = c(2009, 2019),
+                                                     sep = ""
                                          )
                                          
                                      )
@@ -87,7 +79,12 @@ shinyUI(fluidPage(
                              )
                          )
                 ),
-                tabPanel("Race Components"),
+                tabPanel("Race Components",
+                         tabsetPanel(
+                             tabPanel("Swim"),
+                             tabPanel("Bike"),
+                             tabPanel("Run")
+                         )),
                 tabPanel("Map Exploration")
             )
         )

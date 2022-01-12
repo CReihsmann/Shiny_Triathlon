@@ -13,68 +13,49 @@ library(shiny)
 shinyServer(function(input, output) {
     
     base_filter <- reactive({
-        if (is.null(input$athlete_country) & is.null(input$race_region)) {
+        if (is.null(input$athlete_country)) {
             triathlon_data %>% 
                 filter(cat_name == input$race_type,
                        athlete_age >= input$slider_age[1] , athlete_age <= input$slider_age[2],
                        position >= input$slider_position[1], position <= input$slider_position[2],
                        athlete_gender == input$sex)
         }
-        else if (input$athlete_country == "" & input$race_region != "") {
+        else if (!is.null(input$athlete_country)) {
             triathlon_data %>% 
                 filter(cat_name == input$race_type,
                        athlete_age >= input$slider_age[1] , athlete_age <= input$slider_age[2],
                        position >= input$slider_position[1], position <= input$slider_position[2],
                        athlete_gender == input$sex,
-                       event_region_name == input$race_region)
-        }
-        else if (input$athlete_country != "" & input$race_region == "") {
-            triathlon_data %>% 
-                filter(cat_name == input$race_type,
-                       athlete_age >= input$slider_age[1] , athlete_age <= input$slider_age[2],
-                       position >= input$slider_position[1], position <= input$slider_position[2],
-                       athlete_gender == input$sex,
-                       athlete_country_name == input$athlete_country)
-        }
-        else if (input$athlete_country != "" & input$race_region != ""){
-            filter(cat_name == input$race_type,
-                   athlete_age >= input$slider_age[1] , athlete_age <= input$slider_age[2],
-                   position >= input$slider_position[1], position <= input$slider_position[2],
-                   athlete_gender == input$sex,
-                   athlete_country_name == input$athlete_country,
-                   event_region_name == input$race_region)
+                       athlete_country_name %in% c(input$athlete_country))
         }
     })
 
     output$linePlot <- renderPlot({
         
-        #line_schematics <- function({
-            
-        })
-        
-        base_filter() %>% 
+        line_schematics <- function(data){
+            data %>% 
             group_by(prog_year) %>% 
-            summarize(mean_time = mean(total_time, na.rm = TRUE)) %>% 
-            ggplot(aes(x = prog_year, y = mean_time)) +
-            geom_line() +
-            geom_point() +
-            scale_x_continuous(breaks = unique(triathlon_data$prog_year)) 
+                summarize(mean_time = mean(total_time, na.rm = TRUE))
+        }
         
+        average_line <- average_line %>%
+            filter(cat_name == input$race_type) %>% 
+            line_schematics() %>% 
+            mutate(line_type = "Average")
         
-    })
-    
-    output$barPlot <- renderPlot({
+        filtered_line <- base_filter() %>% 
+            line_schematics() %>% 
+            mutate(line_type = "Filtered")
         
-       base_filter() %>% 
-            pivot_longer(swim_time:run_time, names_to = "splits", values_to = "split_times") %>%
-            mutate(splits = fct_relevel(splits, "run_time", "t2_time", "bike_time", "t1_time", "swim_time")) %>%
-            mutate(split_perc = as.numeric(split_times/as.numeric(total_time))) %>% 
-            group_by(prog_year, splits) %>% 
-            summarize(mean_splits_perc = mean(split_perc, na.rm = TRUE)) %>%
-            ggplot(aes(y = mean_splits_perc, x = prog_year, fill = fct_inorder(splits))) +
-            geom_bar(position = "fill", stat = "identity") +
-            coord_flip() +
-            scale_x_continuous(breaks = unique(triathlon_data$prog_year))
+        average_line <- bind_rows(average_line, filtered_line)
+        
+        average_line%>% 
+            ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
+            geom_line(size = 1.2) +
+            geom_point(size = 4) +
+            scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
+            scale_y_time() 
+        
         
     })
     
@@ -92,8 +73,9 @@ shinyServer(function(input, output) {
     output$ridgePlot <- renderPlot({
         
         base_filter() %>% 
-            ggplot(aes(x = total_time, y = event_region_name)) +
-            geom_density_ridges()
+            filter(between(prog_year, input$slider_year[1], input$slider_year[2])) %>% 
+            ggplot(aes(x = total_time, y = event_country)) +
+            geom_density_ridges() 
         
     })
 

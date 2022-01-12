@@ -121,7 +121,11 @@ data_parse <- function(result) {
     athlete_results <- athlete_results %>% 
         mutate(prog_year = year(prog_date),
                prog_month = month(prog_date), 
-               athlete_age = prog_year - as.numeric(athlete_yob)) 
+               athlete_age = prog_year - as.numeric(athlete_yob),
+               position_perc = position/nrow(athlete_results)*100,
+               swim_position_perc = swim_position/nrow(athlete_results)*100,
+               bike_position_perc = bike_position/nrow(athlete_results)*100,
+               run_position_perc = run_position/nrow(athlete_results)*100) 
     
 }    
 
