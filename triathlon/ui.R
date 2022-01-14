@@ -59,23 +59,22 @@ shinyUI(fluidPage(
                          fluidRow(
                              column(width = 12,
                                     plotOutput("linePlot"))),
-                         fluidRow(
+                         fixedRow(
                              column(width = 5,
                                     plotOutput("totaltime_boxPlot")),
-                             (column(width = 7,
-                                     fluidRow(
-                                         plotOutput("ridgePlot")),
-                                     fluidRow(
-                                         sliderInput("slider_year",
-                                                     "Year ",
-                                                     min = 2009,
-                                                     max = 2019,
-                                                     value = c(2009, 2019),
-                                                     sep = ""
-                                         )
-                                         
-                                     )
-                             )
+                             column(width = 7,
+                                    align = "right",
+                                    fluidRow(
+                                        plotOutput("ridgePlot")),
+                                    fluidRow(
+                                        sliderInput("slider_year",
+                                                    "Year ",
+                                                    min = 2009,
+                                                    max = 2019,
+                                                    value = c(2009, 2019),
+                                                    sep = ""
+                                        )
+                                    )
                              )
                          )
                 ),
@@ -84,16 +83,21 @@ shinyUI(fluidPage(
                              tabPanel("Swim",
                                       fluidRow(
                                           column(width = 3,
-                                                 checkboxGroupInput("wetsuit",
-                                                                    "Wetsuit: ",
-                                                                    list("Yes" = TRUE,
-                                                                         "No" = FALSE),
-                                                                    selected = FALSE),
+                                                 radioButtons("wetsuit",
+                                                              "Wetsuit: ",
+                                                              list("Yes" = TRUE,
+                                                                   "No" = FALSE),
+                                                              selected = FALSE),
                                                  sliderInput("water_temp",
                                                              "Water Temperature (F): ",
-                                                             min = min(triathlon_data$temp_water, na.rm = T),
-                                                             max = max(triathlon_data$temp_water, na.rm = T),
-                                                             value = c(52, 86))),
+                                                             min = 52,
+                                                             max = 86,
+                                                             value = c(52, 86)),
+                                                 sliderInput("air_temp",
+                                                             "Air Temperature (F): ",
+                                                             min = 45,
+                                                             max = 95,
+                                                             value = c(45, 95))),
                                           column(width = 9,
                                                  plotOutput("swim_pointPlot"))
                                       ),
@@ -101,9 +105,49 @@ shinyUI(fluidPage(
                                           column(width = 12,
                                                  plotOutput("swim_densityPlot"))
                                       )
+                             ),
+                             tabPanel("Bike",
+                                      fluidRow(
+                                          column(width = 3,
+                                                 sliderInput("water_temp_bike",
+                                                             "Water Temperature (F): ",
+                                                             min = 52,
+                                                             max = 86,
+                                                             value = c(52, 86)),
+                                                 sliderInput("air_temp_bike",
+                                                             "Air Temperature (F): ",
+                                                             min = 45,
+                                                             max = 95,
+                                                             value = c(45, 95))),
+                                          column(width = 9,
+                                                 plotOutput("bike_pointPlot"))
                                       ),
-                             tabPanel("Bike"),
-                             tabPanel("Run")
+                                      fluidRow(
+                                          column(width = 12,
+                                                 plotOutput("bike_densityPlot"))
+                                      )
+                             ),
+                             tabPanel("Run",
+                                      fluidRow(
+                                          column(width = 3,
+                                                 sliderInput("water_temp_run",
+                                                             "Water Temperature (F): ",
+                                                             min = 52,
+                                                             max = 86,
+                                                             value = c(52, 86)),
+                                                 sliderInput("air_temp_run",
+                                                             "Air Temperature (F): ",
+                                                             min = 45,
+                                                             max = 95,
+                                                             value = c(45, 95))),
+                                          column(width = 9,
+                                                 plotOutput("run_pointPlot"))
+                                      ),
+                                      fluidRow(
+                                          column(width = 12,
+                                                 plotOutput("run_densityPlot"))
+                                      )
+                             )
                          )),
                 tabPanel("Map Exploration")
             )
