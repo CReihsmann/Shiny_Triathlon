@@ -34,7 +34,7 @@ shinyUI(fluidPage(
                                  "Age Range: ",
                                  min = 15,
                                  max = 45,
-                                 value = c(25, 35)
+                                 value = c(15, 45)
                      ),
                      
                      selectizeInput("athlete_country",
@@ -44,7 +44,7 @@ shinyUI(fluidPage(
                                     
                      ),
                      sliderInput("slider_position",
-                                 "Finishing Position: ",
+                                 "Finishing Percentile (fastest to slowest): ",
                                  min = 1,
                                  max = 100,
                                  value = c(1, 100)
@@ -58,10 +58,10 @@ shinyUI(fluidPage(
                 tabPanel("Overall Race",
                          fluidRow(
                              column(width = 12,
-                                    plotOutput("linePlot"))),
+                                    plotlyOutput("linePlot"))),
                          fixedRow(
                              column(width = 5,
-                                    plotOutput("totaltime_boxPlot")),
+                                    plotlyOutput("totaltime_boxPlot")),
                              column(width = 7,
                                     align = "right",
                                     fluidRow(

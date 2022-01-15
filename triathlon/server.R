@@ -30,22 +30,43 @@ shinyServer(function(input, output) {
         }
     })
     
-    output$linePlot <- renderPlot({
+    time_scale_line <-reactive({
+        if(input$race_type == "Standard") {
+            
+            yaxis = list(title = 'Average Time (hr:min)',
+                         type = "date",
+                         tickformat = '%H:%M',
+                         fixedrange = TRUE,
+                         range = c(limit1, limit2))
+            
+        }
+        else if(input$race_type == "Sprint") {
+            yaxis = list(title = 'Average Time (hr:min)',
+                         type = "date",
+                         tickformat = '%H:%M',
+                         fixedrange = TRUE,
+                         range = c(limit3, limit4))
+        }
+    })
+    
+    time_scale_box <-reactive({
+        if(input$race_type == "Standard") {
+            scale_y_datetime(labels = function(t) strftime(t, '%H:%M'), 
+                             limits = c(box_limit1, box_limit2))
+        }
+        else if(input$race_type == "Sprint") {
+            scale_y_datetime(labels = function(t) strftime(t, '%H:%M'), 
+                             limits = c(box_limit3, box_limit4))
+        }
+    })
+    
+    output$linePlot <- renderPlotly({
         
         line_schematics <- function(data){
             data %>% 
                 group_by(prog_year) %>% 
                 summarize(mean_time = mean(total_time, na.rm = TRUE))
         }
-        
-        #y_scale <- reactive({
-        #   if(input$race_type == "Standard") {
-        #      scale_y_time(limits = hms::as_hms(c("00:40:00", "01:30:00")))
-        # }
-        #else if (input$race_type == "Sprint"){
-        #   scale_y_time(limits = hms::as_hms(c("01:30:00", "02:20:00")))
-        #   }
-        # })
         
         average_line <- triathlon_data %>%
             filter(cat_name == input$race_type) %>% 
@@ -59,52 +80,88 @@ shinyServer(function(input, output) {
         average_line <- bind_rows(average_line, filtered_line)
         
         average_line %>%
-            ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
-            geom_line(size = 1.2) +
-            geom_point(size = 4) +
-            scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
-            scale_y_time(labels = function(t) strftime(t, '%H:%M')) +
-            theme_minimal() +
-            labs(title = 'Average Race Times by year',
-                 x = 'Year',
-                 y = 'Average Time (hour:minute)') +
-            theme(legend.position = c(0.87, 0.9),
-                  legend.background = element_rect(fill="white", color = "white"),
-                  legend.title = element_blank(),
-                  axis.text = element_text(size = 14),
-                  axis.text.y = element_text(hjust = 0.5),
-                  axis.title = element_text(size = 16),
-                  legend.text = element_text(size = 16),
-                  plot.title = element_text(size = 20))
+            plot_ly(x = ~prog_year, 
+                    y = ~mean_time, mode = "lines+markers", 
+                    linetype = ~line_type, 
+                    line = list(width = 3),
+                    marker = list(size = 8)) %>% 
+            layout(title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1,
+                                fixedrange = T),
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE),
+                   legend = list(x=0.8, y=0.9))
+            
+            
+            #ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
+           # geom_line(size = 1.2) +
+            #geom_point(size = 4) +
+            #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
+            #time_scale()+
+            #theme_minimal() +
+            #labs(title = 'Average Race Times by year',
+                # x = 'Year',
+                # y = 'Average Time (hour:minute)') +
+           # theme(legend.position = c(0.87, 0.9),
+                  #legend.background = element_rect(fill="white", color = "white"),
+                  #legend.title = element_blank(),
+                  #axis.text = element_text(size = 14),
+                  #axis.text.y = element_text(hjust = 0.5),
+                  #axis.title = element_text(size = 16),
+                  #legend.text = element_text(size = 16),
+                  #plot.title = element_text(size = 20))
         # y_scale()
         
         
     })
     
-    output$totaltime_boxPlot <- renderPlot({
-        base_filter() %>%  
-            ggplot(aes(y = total_time, x = prog_year, group=prog_year)) +
-            geom_boxplot(fill = "lightgray") +
-            geom_jitter(color = "black", size = 0.4, alpha = 0.2) +
-            scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
-            scale_y_time(labels = function(x) strftime(x, "%H:%M")) +
-            theme(legend.position = "none")+
-            theme_minimal() +
-            labs(title = 'Spread of Race Times by Year',
-                 x = "Year", 
-                 y = "Time (hour:minute") +
-            theme(axis.text.x = element_text(angle = 45),
-                  axis.text = element_text(size = 12),
-                  plot.title = element_text(size = 18),
-                  axis.title = element_text(size = 14))
+    output$totaltime_boxPlot <- renderPlotly({
+        base_filter() %>% 
+            plot_ly(x = ~prog_year, y = ~total_time, type = "violin", box = list(visible = T), jitter = 0.3) %>% 
+            layout(title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1),
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE))
+            
+            
+           #ggplot(aes(y = total_time, x = prog_year, group=prog_year)) +
+           # geom_boxplot(fill = "lightgray") +
+            #geom_jitter(color = "black", size = 0.4, alpha = 0.2) +
+            #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
+            #time_scale_box() +
+            #theme(legend.position = "none")+
+            #theme_minimal() +
+            #labs(title = 'Spread of Race Times by Year',
+            #     x = "Year", 
+            #     y = "Time (hour:minute") +
+            #theme(axis.text.x = element_text(angle = 45),
+            #      axis.text = element_text(size = 12),
+            #      plot.title = element_text(size = 16),
+            #      axis.title = element_text(size = 14))
     })
     
     output$ridgePlot <- renderPlot({
         
-        base_filter() %>% 
+        average_ridge <- triathlon_data %>% 
+            filter(cat_name == input$race_type,
+                   between(prog_year, input$slider_year[1], input$slider_year[2])) %>% 
+            mutate(ridge_type = "All")
+        
+        filtered_ridge <- base_filter() %>% 
             filter(between(prog_year, input$slider_year[1], input$slider_year[2])) %>% 
-            ggplot(aes(x = total_time, y = event_country)) +
-            geom_density_ridges() +
+            mutate(ridge_type = "Filtered")
+        
+        average_ridge <- bind_rows(average_ridge, filtered_ridge)
+        
+        average_ridge %>% 
+            ggplot(aes(x = total_time, y = event_country, fill = ridge_type)) +
+            geom_density_ridges(alpha = 0.7) +
             theme_minimal()
         
     })

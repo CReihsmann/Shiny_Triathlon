@@ -110,6 +110,11 @@ data_parse <- function(result) {
         filter(!is.na(position))
     
     athlete_results <- athlete_results %>% 
+        filter(swim_time != "00:00:00",
+               bike_time != "00:00:00",
+               run_time != "00:00:00")
+    
+    athlete_results <- athlete_results %>% 
         arrange(hms::as_hms(swim_time)) %>% 
         add_column(swim_position = 1:nrow(athlete_results), .after = "swim_time") %>% 
         arrange(hms::as_hms(bike_time)) %>% 
@@ -125,7 +130,11 @@ data_parse <- function(result) {
                position_perc = position/nrow(athlete_results)*100,
                swim_position_perc = swim_position/nrow(athlete_results)*100,
                bike_position_perc = bike_position/nrow(athlete_results)*100,
-               run_position_perc = run_position/nrow(athlete_results)*100) 
+               run_position_perc = run_position/nrow(athlete_results)*100)#,
+              # swim_time = hms::as_hms(swim_time),
+               #bike_time = hms::as_hms(bike_time),
+               #run_time = hms::as_hms(run_time),
+               #total_time = hms::as.hms(total_time))
     
 }    
 
@@ -179,6 +188,10 @@ for(key in names(event_id)){
    all_results <- bind_rows(all_results, single_event)
 }
 
+test <- all_results %>% 
+    filter(prog_id == 4818)
+
+    mutate(swim_time_zscore = as.numeric((swim_time - mean(swim_time, na.rm = T)))/sd(as.double(swim_time)))
 
 write_csv2(all_results, "data/triathlon_data.csv")
 write_rds(all_results, "data/triathlon_data.RDS")
