@@ -1,5 +1,5 @@
 # **Triathlons: Three Times the Data**
-### **Analysis of trends and race outcomes based on Age, Country of Origin, and External Factors**
+### **Analysis of trends and race outcomes based on age, external factors, and Country of origin**
 
 ### Motivation
 
