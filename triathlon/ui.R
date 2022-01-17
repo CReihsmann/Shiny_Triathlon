@@ -24,11 +24,11 @@ shinyUI(fluidPage(
                                                  "Sprint" = "Sprint"),
                                   selected = "Standard"
                      ),
-                     checkboxGroupInput("sex",
-                                        "Sex: ",
+                     radioButtons("sex",
+                                        "Gender: ",
                                         list("Male" = "male",
                                              "Female" = "female"),
-                                        selected = c("male", "female")
+                                        selected = "male"
                      ),
                      sliderInput("slider_age",
                                  "Age Range: ",
@@ -48,7 +48,15 @@ shinyUI(fluidPage(
                                  min = 1,
                                  max = 100,
                                  value = c(1, 100)
+                     ),
+                     sliderInput("slider_year",
+                                 "Year (event locations & age groups): ",
+                                 min = 2009,
+                                 max = 2019,
+                                 value = c(2009, 2019),
+                                 sep = ""
                      )
+                     
                      
         ),
         
@@ -57,25 +65,23 @@ shinyUI(fluidPage(
             tabsetPanel(
                 tabPanel("Overall Race",
                          fluidRow(
-                             column(width = 12,
-                                    plotlyOutput("linePlot"))),
-                         fixedRow(
-                             column(width = 5,
-                                    plotlyOutput("totaltime_boxPlot")),
+                             tabsetPanel(
+                                 tabPanel("Average Race Times",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("linePlot"))
+                                          )),
+                                 tabPanel("Time Spread",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("totaltime_boxPlot"))
+                                          )))),
+                         fluidRow(
                              column(width = 7,
-                                    align = "right",
-                                    fluidRow(
                                         plotOutput("ridgePlot")),
-                                    fluidRow(
-                                        sliderInput("slider_year",
-                                                    "Year ",
-                                                    min = 2009,
-                                                    max = 2019,
-                                                    value = c(2009, 2019),
-                                                    sep = ""
-                                        )
+                             column(width = 5,
+                                    plotlyOutput("age_groupPlot")
                                     )
-                             )
                          )
                 ),
                 tabPanel("Race Components",
@@ -83,11 +89,6 @@ shinyUI(fluidPage(
                              tabPanel("Swim",
                                       fluidRow(
                                           column(width = 3,
-                                                 radioButtons("wetsuit",
-                                                              "Wetsuit: ",
-                                                              list("Yes" = TRUE,
-                                                                   "No" = FALSE),
-                                                              selected = FALSE),
                                                  sliderInput("water_temp",
                                                              "Water Temperature (F): ",
                                                              min = 52,

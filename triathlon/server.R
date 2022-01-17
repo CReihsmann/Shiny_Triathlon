@@ -69,7 +69,8 @@ shinyServer(function(input, output) {
         }
         
         average_line <- triathlon_data %>%
-            filter(cat_name == input$race_type) %>% 
+            filter(cat_name == input$race_type,
+                   athlete_gender == input$sex) %>% 
             line_schematics() %>% 
             mutate(line_type = "Average")
         
@@ -93,7 +94,7 @@ shinyServer(function(input, output) {
                                 type = "date",
                                 tickformat = '%H:%M',
                                 fixedrange = TRUE),
-                   legend = list(x=0.8, y=0.9))
+                   legend = list(x=0.8, y=0.9)) 
             
             
             #ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
@@ -120,7 +121,10 @@ shinyServer(function(input, output) {
     
     output$totaltime_boxPlot <- renderPlotly({
         base_filter() %>% 
-            plot_ly(x = ~prog_year, y = ~total_time, type = "violin", box = list(visible = T), jitter = 0.3) %>% 
+            plot_ly(x = ~prog_year, y = ~total_time, 
+                    type = "violin", 
+                    box = list(visible = T), 
+                    jitter = 0.3) %>% 
             layout(title = "Average Race Times by year",
                    xaxis = list(title = 'Year',
                                 dtick = 1),
@@ -150,6 +154,7 @@ shinyServer(function(input, output) {
         
         average_ridge <- triathlon_data %>% 
             filter(cat_name == input$race_type,
+                   athlete_gender == input$sex,
                    between(prog_year, input$slider_year[1], input$slider_year[2])) %>% 
             mutate(ridge_type = "All")
         
@@ -162,14 +167,56 @@ shinyServer(function(input, output) {
         average_ridge %>% 
             ggplot(aes(x = total_time, y = event_country, fill = ridge_type)) +
             geom_density_ridges(alpha = 0.7) +
-            theme_minimal()
+            theme_minimal() +
+            labs(title = 'Race Time Distributions by Location',
+                 x = 'Total Time',
+                 y = 'Event Country') +
+            theme(legend.position = c(0.9, 0.8),
+                  legend.background = element_rect(fill = "white", color = "white"),
+                  legend.title = element_blank(),
+                  axis.title = element_text(size = 14),
+                  axis.text = element_text(size = 12),
+                  plot.title = element_text(size = 20),
+                  legend.text = element_text(size = 14))
+        
+        #ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
+        # geom_line(size = 1.2) +
+        #geom_point(size = 4) +
+        #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
+        #time_scale()+
+        #theme_minimal() +
+        #labs(title = 'Average Race Times by year',
+        # x = 'Year',
+        # y = 'Average Time (hour:minute)') +
+        # theme(legend.position = c(0.87, 0.9),
+        #legend.background = element_rect(fill="white", color = "white"),
+        #legend.title = element_blank(),
+        #axis.text = element_text(size = 14),
+        #axis.text.y = element_text(hjust = 0.5),
+        #axis.title = element_text(size = 16),
+        #legend.text = element_text(size = 16),
+        #plot.title = element_text(size = 18))
+        # y_scale()
+        
+    })
+    
+    output$age_groupPlot <-renderPlotly({
+        
+        triathlon_data %>% 
+            filter(athlete_gender == input$sex, 
+                   prog_year == input$slider_year,
+                   cat_name == input$race_type) %>% 
+            plot_ly(x = ~age_group, y = ~position_perc, type = "box") %>% 
+            layout(title = "Race Results by Age Group",
+                   xaxis = list(title = "Age Group"),
+                   yaxis = list(title = "Percentile Finish (%)"))
         
     })
     
     output$swim_densityPlot <- renderPlot({ 
         filtered_swim <- base_filter() %>% 
             filter(!is.na(temp_water), 
-                   wetsuit == input$wetsuit, 
+                   wetsuit != T, 
                    swim_time > hms::as_hms("00:00:00")) %>% 
             filter(between(temp_water, input$water_temp[1], input$water_temp[2]),
                    between(temp_air, input$air_temp[1], input$air_temp[2])) %>% 
@@ -177,6 +224,7 @@ shinyServer(function(input, output) {
         
         average_swim <- triathlon_data %>% 
             filter(!is.na(temp_water), 
+                   wetsuit != T,
                    swim_time > hms::as_hms("00:00:00"), 
                    cat_name == input$race_type,
                    athlete_gender == input$sex) %>% 
@@ -193,7 +241,7 @@ shinyServer(function(input, output) {
         
         base_filter() %>% 
             filter(!is.na(temp_water), 
-                   wetsuit == input$wetsuit, 
+                   wetsuit != T, 
                    swim_time > hms::as_hms("00:00:00"),
                    between(temp_water, input$water_temp[1], input$water_temp[2]),
                    between(temp_air, input$air_temp[1], input$air_temp[2])) %>% 
@@ -207,6 +255,7 @@ shinyServer(function(input, output) {
         
         filtered_bike <- base_filter() %>% 
             filter(!is.na(temp_air), 
+                   wetsuit != T, 
                    bike_time > hms::as_hms("00:00:00"),
                    between(temp_water, input$water_temp_bike[1], input$water_temp_bike[2]),
                    between(temp_air, input$air_temp_bike[1], input$air_temp_bike[2])) %>% 
@@ -215,7 +264,8 @@ shinyServer(function(input, output) {
         average_bike <- triathlon_data %>% 
             filter(!is.na(temp_water), 
                    bike_time > hms::as_hms("00:00:00"), 
-                   cat_name == input$race_type,
+                   cat_name == input$race_type, 
+                   wetsuit != T,
                    athlete_gender == input$sex) %>% 
             mutate(time_cat = "Average")
         
@@ -229,7 +279,8 @@ shinyServer(function(input, output) {
     output$bike_pointPlot <- renderPlot({
         
         base_filter() %>% 
-            filter(!is.na(temp_air),  
+            filter(!is.na(temp_air), 
+                   wetsuit != T,  
                    bike_time > hms::as_hms("00:00:00"),
                    between(temp_water, input$water_temp_bike[1], input$water_temp_bike[2]),
                    between(temp_air, input$air_temp_bike[1], input$air_temp_bike[2])) %>% 
@@ -243,13 +294,15 @@ shinyServer(function(input, output) {
         
         filtered_run <- base_filter() %>% 
             filter(!is.na(temp_air), 
-                   run_time > hms::as_hms("00:00:00"),
+                   run_time > hms::as_hms("00:00:00"), 
+                   wetsuit != T,
                    between(temp_water, input$water_temp_run[1], input$water_temp_run[2]),
                    between(temp_air, input$air_temp_run[1], input$air_temp_run[2])) %>% 
             mutate(time_cat = "Filtered")
         
         average_run <- triathlon_data %>% 
-            filter(!is.na(temp_water), 
+            filter(!is.na(temp_water),  
+                   wetsuit != T,
                    run_time > hms::as_hms("00:00:00"), 
                    cat_name == input$race_type,
                    athlete_gender == input$sex) %>% 
