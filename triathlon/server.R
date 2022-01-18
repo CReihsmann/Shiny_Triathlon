@@ -30,24 +30,70 @@ shinyServer(function(input, output) {
         }
     })
     
-    time_scale_line <-reactive({
-        if(input$race_type == "Standard") {
-            
-            yaxis = list(title = 'Average Time (hr:min)',
-                         type = "date",
-                         tickformat = '%H:%M',
-                         fixedrange = TRUE,
-                         range = c(limit1, limit2))
+    choropleth_color <- function(data, inputs){
+        if (inputs == 10) {
+            add_trace(data,
+                      z = ~percent_total, color = ~percent_total, locations = ~FIPS, colors = 'Blues',
+                      zmax = 30, zmin = 0) %>% 
+                layout(title = "Top 10% Finishers by Country",
+                       geo = list(showframe = F))
+        }
+        else if(inputs == 90) {
+            add_trace(data,
+                      z = ~percent_total, color = ~percent_total, locations = ~FIPS, colors = 'Reds',
+                      zmax = 30, zmin = 0) %>% 
+                layout(title = "Bottom 10% Finishers by Country",
+                       geo = list(showframe = F))
+        }
+    }
+    
+    time_scale_line <-function(data, input1, input2){
+        if(input1 == "Standard" & input2 == "male") {
+            layout(data, title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1), 
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE,
+                                range = c(limit1_m_oly, limit2_m_oly)),
+                   legend = list(x=0.8, y=0.9))
             
         }
-        else if(input$race_type == "Sprint") {
-            yaxis = list(title = 'Average Time (hr:min)',
-                         type = "date",
-                         tickformat = '%H:%M',
-                         fixedrange = TRUE,
-                         range = c(limit3, limit4))
+        else if(input1 == "Standard" & input2 == "female") {
+            layout(data, title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1), 
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE,
+                                range = c(limit1_f_oly, limit2_f_oly)),
+                   legend = list(x=0.8, y=0.9))
         }
-    })
+        else if(input1 == "Sprint" & input2 == "male") {
+            layout(data,title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1), 
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE,
+                                range = c(limit1_m_spr, limit2_m_spr)),
+                   legend = list(x=0.8, y=0.9))
+        }
+        else if(input1 == "Sprint" & input2 == "female") {
+            layout(data,title = "Average Race Times by year",
+                   xaxis = list(title = 'Year',
+                                dtick = 1), 
+                   yaxis = list(title = 'Average Time (hr:min)',
+                                type = "date",
+                                tickformat = '%H:%M',
+                                fixedrange = TRUE,
+                                range = c(limit1_f_spr, limit2_f_spr)),
+                   legend = list(x=0.8, y=0.9))
+        }
+    }
     
     time_scale_box <-reactive({
         if(input$race_type == "Standard") {
@@ -86,36 +132,7 @@ shinyServer(function(input, output) {
                     linetype = ~line_type, 
                     line = list(width = 3),
                     marker = list(size = 8)) %>% 
-            layout(title = "Average Race Times by year",
-                   xaxis = list(title = 'Year',
-                                dtick = 1,
-                                fixedrange = T),
-                   yaxis = list(title = 'Average Time (hr:min)',
-                                type = "date",
-                                tickformat = '%H:%M',
-                                fixedrange = TRUE),
-                   legend = list(x=0.8, y=0.9)) 
-            
-            
-            #ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
-           # geom_line(size = 1.2) +
-            #geom_point(size = 4) +
-            #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
-            #time_scale()+
-            #theme_minimal() +
-            #labs(title = 'Average Race Times by year',
-                # x = 'Year',
-                # y = 'Average Time (hour:minute)') +
-           # theme(legend.position = c(0.87, 0.9),
-                  #legend.background = element_rect(fill="white", color = "white"),
-                  #legend.title = element_blank(),
-                  #axis.text = element_text(size = 14),
-                  #axis.text.y = element_text(hjust = 0.5),
-                  #axis.title = element_text(size = 16),
-                  #legend.text = element_text(size = 16),
-                  #plot.title = element_text(size = 20))
-        # y_scale()
-        
+            time_scale_line(input$race_type, input$sex)
         
     })
     
@@ -132,22 +149,6 @@ shinyServer(function(input, output) {
                                 type = "date",
                                 tickformat = '%H:%M',
                                 fixedrange = TRUE))
-            
-            
-           #ggplot(aes(y = total_time, x = prog_year, group=prog_year)) +
-           # geom_boxplot(fill = "lightgray") +
-            #geom_jitter(color = "black", size = 0.4, alpha = 0.2) +
-            #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
-            #time_scale_box() +
-            #theme(legend.position = "none")+
-            #theme_minimal() +
-            #labs(title = 'Spread of Race Times by Year',
-            #     x = "Year", 
-            #     y = "Time (hour:minute") +
-            #theme(axis.text.x = element_text(angle = 45),
-            #      axis.text = element_text(size = 12),
-            #      plot.title = element_text(size = 16),
-            #      axis.title = element_text(size = 14))
     })
     
     output$ridgePlot <- renderPlot({
@@ -178,25 +179,6 @@ shinyServer(function(input, output) {
                   axis.text = element_text(size = 12),
                   plot.title = element_text(size = 20),
                   legend.text = element_text(size = 14))
-        
-        #ggplot(aes(x = prog_year, y = mean_time, color = line_type)) +
-        # geom_line(size = 1.2) +
-        #geom_point(size = 4) +
-        #scale_x_continuous(breaks = unique(triathlon_data$prog_year)) +
-        #time_scale()+
-        #theme_minimal() +
-        #labs(title = 'Average Race Times by year',
-        # x = 'Year',
-        # y = 'Average Time (hour:minute)') +
-        # theme(legend.position = c(0.87, 0.9),
-        #legend.background = element_rect(fill="white", color = "white"),
-        #legend.title = element_blank(),
-        #axis.text = element_text(size = 14),
-        #axis.text.y = element_text(hjust = 0.5),
-        #axis.title = element_text(size = 16),
-        #legend.text = element_text(size = 16),
-        #plot.title = element_text(size = 18))
-        # y_scale()
         
     })
     
@@ -327,6 +309,138 @@ shinyServer(function(input, output) {
             geom_point(size = 1.5, alpha = 0.05)+
             geom_smooth(method = "lm", size = 1.5)+
             theme_bw()
+    })
+    
+    output$overall_choropleth <- renderPlotly({
+        
+        percentile <- function(data, inputs){ 
+            if (inputs == 10){
+                
+                filter(data, position_perc <= 10)
+            }
+            else if(inputs ==90){
+                
+                filter(data, position_perc >= 90)
+            }
+            
+        }
+        
+        filtered_perc <- triathlon_data %>%
+            percentile(input$top_bottomperc) %>% 
+            count(FIPS, name = "numb_per_country_filtered")
+        
+        
+        all_perc <- triathlon_data %>% 
+            count(FIPS, name = "numb_per_country_total")
+        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
+        
+        comb_perc <- comb_perc %>% 
+            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+        
+        comb_perc %>% 
+            plot_geo() %>% 
+            choropleth_color(input$top_bottomperc) %>% 
+            colorbar(title = "% of Country Total")
+        
+    })
+    
+    output$swim_choropleth <- renderPlotly({
+        
+        percentile <- function(data, inputs){ 
+            if (inputs == 10){
+                
+                filter(data, swim_position_perc <= 10)
+            }
+            else if(inputs ==90){
+                
+                filter(data, swim_position_perc >= 90)
+            }
+            
+        }
+        
+        filtered_perc <- triathlon_data %>%
+            percentile(input$top_bottomperc) %>% 
+            count(FIPS, name = "numb_per_country_filtered")
+        
+        
+        all_perc <- triathlon_data %>% 
+            count(FIPS, name = "numb_per_country_total")
+        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
+        
+        comb_perc <- comb_perc %>% 
+            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+        
+        comb_perc %>% 
+            plot_geo() %>% 
+            choropleth_color(input$top_bottomperc) %>% 
+            colorbar(title = "% of Country Total")
+        
+    })
+    
+    output$bike_choropleth <- renderPlotly({
+        
+        percentile <- function(data, inputs){ 
+            if (inputs == 10){
+                
+                filter(data, bike_position_perc <= 10)
+            }
+            else if(inputs ==90){
+                
+                filter(data, bike_position_perc >= 90)
+            }
+            
+        }
+        
+        filtered_perc <- triathlon_data %>%
+            percentile(input$top_bottomperc) %>% 
+            count(FIPS, name = "numb_per_country_filtered")
+        
+        
+        all_perc <- triathlon_data %>% 
+            count(FIPS, name = "numb_per_country_total")
+        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
+        
+        comb_perc <- comb_perc %>% 
+            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+        
+        comb_perc %>% 
+            plot_geo() %>% 
+            choropleth_color(input$top_bottomperc) %>% 
+            colorbar(title = "% of Country Total")
+        
+    })
+    
+    output$run_choropleth <- renderPlotly({
+        
+        percentile <- function(data, inputs){ 
+            if (inputs == 10){
+                
+                filter(data, run_position_perc <= 10)
+            }
+            else if(inputs ==90){
+                
+                filter(data, run_position_perc >= 90)
+            }
+            
+        }
+        
+        filtered_perc <- triathlon_data %>%
+            percentile(input$top_bottomperc) %>% 
+            count(FIPS, name = "numb_per_country_filtered")
+        
+        
+        all_perc <- triathlon_data %>% 
+            count(FIPS, name = "numb_per_country_total")
+        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
+        
+        comb_perc <- comb_perc %>% 
+            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+        
+        comb_perc %>% 
+            plot_geo() %>% 
+            choropleth_color(input$top_bottomperc) %>% 
+            colorbar(title = "% of Country Total")
+        
     })
     
 })

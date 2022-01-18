@@ -150,7 +150,38 @@ shinyUI(fluidPage(
                                       )
                              )
                          )),
-                tabPanel("Map Exploration")
+                tabPanel("Map Exploration",
+                         fluidRow(
+                         radioButtons("top_bottomperc",
+                                      "Result Percentile: ",
+                                      choices = c("Top 10%" = 10,
+                                                  "Bottom 10%" = 90),
+                                      selected = 10, 
+                                      inline = T)),
+                         fluidRow(
+                             tabsetPanel(
+                                 tabPanel("Overall",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("overall_choropleth"))
+                                          )),
+                                 tabPanel("Swim",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("swim_choropleth"))
+                                          )),
+                                 tabPanel("Bike",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("bike_choropleth"))
+                                          )),
+                                 tabPanel("Run",
+                                          fluidRow(
+                                              column(width = 12,
+                                                     plotlyOutput("run_choropleth"))
+                                          ))
+                             )
+                         ))
             )
         )
     )
