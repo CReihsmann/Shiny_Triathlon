@@ -7,6 +7,8 @@ library(ggridges)
 library(plotly)
 library(tibbletime)
 library(shinythemes)
+library(markdown)
+library(maps)
 
 triathlon_data <- read_rds("data/cleaned_data.RDS")
 

@@ -9,24 +9,68 @@ library(tibbletime)
 library(RColorBrewer)
 
 
-triathlon_data <- read_rds("data/triathlon_data.RDS")
+triathlon_called <- read_rds("data/triathlon_data.RDS")
 
-triathlon_data <- triathlon_data %>% 
-    mutate(athlete_yob = as.numeric(athlete_yob))
+triathlon_called <- ungroup(triathlon_called)
 
-triathlon_data <- ungroup(triathlon_data)
+triathlon_called <- triathlon_called %>% 
+    mutate(athlete_yob = as.numeric(athlete_yob),
+           temp_air = (temp_air*(9/5)+32),
+           temp_water = (temp_water*(9/5)+32),
+           total_time = hms::as_hms(total_time),
+           swim_time = hms::as_hms(swim_time),
+           bike_time = hms::as_hms(bike_time),
+           run_time = hms::as_hms(run_time))
 
-triathlon_data <- triathlon_data %>% 
-    mutate(temp_air = (temp_air*(9/5)+32),
-           temp_water = (temp_water*(9/5)+32))
+event_countries <- as.list(unique(triathlon_called$event_country))
+triathlon_data <- triathlon_called[0, ]
+triathlon_oly_m <- triathlon_called[0, ]
+triathlon_oly_f <- triathlon_called[0, ]
+triathlon_spr_m <- triathlon_called[0, ]
+triathlon_spr_f <- triathlon_called[0, ]
+for (i in event_countries) {
+    country <- triathlon_called %>% 
+        filter(event_country == i, athlete_gender == "male", cat_name == "Standard") %>% 
+        mutate(znorm_total = as.numeric((total_time - mean(total_time))/sd(total_time)),
+               znorm_swim = as.numeric((swim_time - mean(swim_time))/sd(swim_time)),
+               znorm_bike = as.numeric((bike_time - mean(bike_time))/sd(bike_time)),
+               znorm_run = as.numeric((run_time - mean(run_time))/sd(run_time)))
+    triathlon_oly_m <- bind_rows(triathlon_oly_m, country)
+}
+for (i in event_countries) {
+    country <- triathlon_called %>% 
+        filter(event_country == i, athlete_gender == "female", cat_name == "Standard") %>% 
+        mutate(znorm_total = as.numeric((total_time - mean(total_time))/sd(total_time)),
+               znorm_swim = as.numeric((swim_time - mean(swim_time))/sd(swim_time)),
+               znorm_bike = as.numeric((bike_time - mean(bike_time))/sd(bike_time)),
+               znorm_run = as.numeric((run_time - mean(run_time))/sd(run_time)))
+    triathlon_oly_f <- bind_rows(triathlon_oly_f, country)
+}
+for (i in event_countries) {
+    country <- triathlon_called %>% 
+        filter(event_country == i, athlete_gender == "male", cat_name == "Sprint") %>% 
+        mutate(znorm_total = as.numeric((total_time - mean(total_time))/sd(total_time)),
+               znorm_swim = as.numeric((swim_time - mean(swim_time))/sd(swim_time)),
+               znorm_bike = as.numeric((bike_time - mean(bike_time))/sd(bike_time)),
+               znorm_run = as.numeric((run_time - mean(run_time))/sd(run_time)))
+    triathlon_spr_m <- bind_rows(triathlon_spr_m, country)
+}
+for (i in event_countries) {
+    country <- triathlon_called %>% 
+        filter(event_country == i, athlete_gender == "female", cat_name == "Sprint") %>% 
+        mutate(znorm_total = as.numeric((total_time - mean(total_time))/sd(total_time)),
+               znorm_swim = as.numeric((swim_time - mean(swim_time))/sd(swim_time)),
+               znorm_bike = as.numeric((bike_time - mean(bike_time))/sd(bike_time)),
+               znorm_run = as.numeric((run_time - mean(run_time))/sd(run_time)))
+    triathlon_spr_f <- bind_rows(triathlon_spr_f, country)
+}
+
+triathlon_data <- bind_rows(triathlon_oly_m, triathlon_oly_f, triathlon_spr_m, triathlon_spr_f)
+    
 
 date_constant <- as.POSIXct("2000-01-01")
 triathlon_data <- triathlon_data %>% 
-    filter(event_title != "2014 ITU World Triathlon Cape Town" & event_title != "2015 ITU World Triathlon Cape Town") %>% 
-    mutate(total_time = hms::as_hms(total_time),
-           swim_time = hms::as_hms(swim_time),
-           bike_time = hms::as_hms(bike_time),
-           run_time = hms::as_hms(run_time)) %>% 
+    filter(event_title != "2014 ITU World Triathlon Cape Town" & event_title != "2015 ITU World Triathlon Cape Town") %>%  
     mutate(total_time = date_constant + total_time,
            swim_time = date_constant + swim_time,
            bike_time = date_constant + bike_time,
@@ -36,7 +80,8 @@ triathlon_data <- triathlon_data %>%
                                        if_else(athlete_age >=  25 & athlete_age<=29, "25-29", 
                                                if_else(athlete_age >=  30 & athlete_age<=34, "30-34", 
                                                        if_else(athlete_age >=  35 & athlete_age<=38, "35-38",
-                                                               if_else(athlete_age >=  39 & athlete_age<=42, "39-42", "NA")))))))
+                                                               if_else(athlete_age >=  39 & athlete_age<=42, "39-42", "NA"))))))) 
+
 
 
 sprint <- triathlon_data %>%  
@@ -151,6 +196,12 @@ countries <- c("Aruba",	"Afghanistan",	"Angola",	"Anguilla",	"Åland Islands",	"A
 country_tibble <- tibble(FIPS = country_codes,
                          athlete_country_name = countries)
 triathlon_data <- left_join(triathlon_data, country_tibble, by = "athlete_country_name")
+
+triathlon_data <- triathlon_data %>% 
+    select(-c(athlete_id, athlete_title,athlete_first,athlete_last, athlete_noc,
+              athlete_country_isoa2,result_id, prog_notes, prog_name, prog_time,
+              event_country_isoa2,event_country_id,event_region_name, event_country_noc, 
+              prog_date, event_date, athlete_yob, event_venue))
 
 write_csv2(triathlon_data, "data/cleaned_data.csv")
 write_rds(triathlon_data, "data/cleaned_data.RDS")

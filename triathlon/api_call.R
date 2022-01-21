@@ -120,14 +120,16 @@ data_parse <- function(result) {
         arrange(hms::as_hms(bike_time)) %>% 
         add_column(bike_position = 1:nrow(athlete_results), .after = "bike_time") %>% 
         arrange(hms::as_hms(run_time)) %>% 
-        add_column(run_position = 1:nrow(athlete_results), .after = "run_time")
+        add_column(run_position = 1:nrow(athlete_results), .after = "run_time") %>% 
+        arrange(hms::as_hms(total_time)) %>% 
+        add_column(total_position = 1:nrow(athlete_results), .after = "total_time")
     
     
     athlete_results <- athlete_results %>% 
         mutate(prog_year = year(prog_date),
                prog_month = month(prog_date), 
                athlete_age = prog_year - as.numeric(athlete_yob),
-               position_perc = position/nrow(athlete_results)*100,
+               position_perc = total_position/nrow(athlete_results)*100,
                swim_position_perc = swim_position/nrow(athlete_results)*100,
                bike_position_perc = bike_position/nrow(athlete_results)*100,
                run_position_perc = run_position/nrow(athlete_results)*100)#,
