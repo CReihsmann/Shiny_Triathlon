@@ -31,14 +31,14 @@ shinyServer(function(input, output) {
     })
     
     base_filter2 <- reactive({
-        if (is.null(input$athlete_country)) {
+        if (is.null(input$athlete_country2)) {
             triathlon_data %>% 
                 filter(cat_name == input$race_type2,
                        between(athlete_age, input$slider_age2[1], input$slider_age2[2]),
                        between(position_perc, input$slider_position2[1], input$slider_position2[2]),
                        athlete_gender == input$sex2)
         }
-        else if (!is.null(input$athlete_country)) {
+        else if (!is.null(input$athlete_country2)) {
             triathlon_data %>% 
                 filter(cat_name == input$race_type2,
                        between(athlete_age, input$slider_age2[1], input$slider_age2[2]),
@@ -68,7 +68,7 @@ shinyServer(function(input, output) {
     time_scale_line <-function(data, input1, input2){
         if(input1 == "Standard" & input2 == "male") {
             layout(data,xaxis = list(title = 'Year',
-                                dtick = 1), 
+                                     dtick = 1), 
                    yaxis = list(title = 'Average Time (hr:min)',
                                 type = "date",
                                 tickformat = '%H:%M',
@@ -79,7 +79,7 @@ shinyServer(function(input, output) {
         }
         else if(input1 == "Standard" & input2 == "female") {
             layout(data,xaxis = list(title = 'Year',
-                                dtick = 1), 
+                                     dtick = 1), 
                    yaxis = list(title = 'Average Time (hr:min)',
                                 type = "date",
                                 tickformat = '%H:%M',
@@ -89,7 +89,7 @@ shinyServer(function(input, output) {
         }
         else if(input1 == "Sprint" & input2 == "male") {
             layout(data,xaxis = list(title = 'Year',
-                                dtick = 1), 
+                                     dtick = 1), 
                    yaxis = list(title = 'Average Time (hr:min)',
                                 type = "date",
                                 tickformat = '%H:%M',
@@ -99,7 +99,7 @@ shinyServer(function(input, output) {
         }
         else if(input1 == "Sprint" & input2 == "female") {
             layout(data,xaxis = list(title = 'Year',
-                                dtick = 1), 
+                                     dtick = 1), 
                    yaxis = list(title = 'Average Time (hr:min)',
                                 type = "date",
                                 tickformat = '%H:%M',
@@ -155,8 +155,8 @@ shinyServer(function(input, output) {
                                 fixedrange = TRUE),
                    legend = list(x=0.8, y=0.9))
         
-         
-#            time_scale_line(input$race_type, input$sex)
+        
+        #            time_scale_line(input$race_type, input$sex)
         
     })
     
@@ -255,14 +255,21 @@ shinyServer(function(input, output) {
                    yaxis = list(title = "Percentile Finish (%)"))
         
     })
-    
-    output$swim_densityPlot <- renderPlot({ 
-        filtered_swim <- base_filter2() %>% 
-            filter(!is.na(temp_water), 
-                   wetsuit != T, 
-                   swim_time > hms::as_hms("00:00:00"),
+    #------------------correlation filter function---------------------     
+    disc_filt_func <- function(filters) {
+        filters %>%  
+            filter(!is.na(temp_water),
                    between(temp_water, input$water_temp[1], input$water_temp[2]),
-                   between(temp_air, input$air_temp[1], input$air_temp[2])) %>% 
+                   between(temp_air, input$air_temp[1], input$air_temp[2]))
+        
+    }
+    #------------------discipline density plots--------------------- 
+    
+    #-----swim density     
+    output$swim_densityPlot <- renderPlot({ 
+        
+        filtered_swim <- disc_filt_func(base_filter2()) %>% 
+            filter(wetsuit != T) %>% 
             mutate(time_cat = "Filtered")
         
         average_swim <- triathlon_data %>% 
@@ -283,25 +290,10 @@ shinyServer(function(input, output) {
                   legend.background = element_rect(fill = "white", linetype = "solid", colour = "white"),
                   axis.title = element_blank())
     })
-    
-    output$swim_pointPlot <- renderPlot({
-        
-        base_filter2() %>% 
-            filter(!is.na(temp_water),
-                   between(temp_water, input$water_temp[1], input$water_temp[2]),
-                   between(temp_air, input$air_temp[1], input$air_temp[2])) %>% 
-            ggplot(aes(y = position_perc, x = swim_position_perc)) +
-            geom_point(size = 1.5, alpha = 0.05)+
-            geom_smooth(method = "lm", size = 1.5)+
-            theme_bw()
-    })
-    
+    #-----bike density    
     output$bike_densityPlot <- renderPlot({ 
         
-        filtered_bike <- base_filter2() %>% 
-            filter(!is.na(temp_air),
-                   between(temp_water, input$water_temp_bike[1], input$water_temp_bike[2]),
-                   between(temp_air, input$air_temp_bike[1], input$air_temp_bike[2])) %>% 
+        filtered_bike <- disc_filt_func(base_filter2()) %>% 
             mutate(time_cat = "Filtered")
         
         average_bike <- triathlon_data %>% 
@@ -321,25 +313,10 @@ shinyServer(function(input, output) {
                   legend.background = element_rect(fill = "white", linetype = "solid", colour = "white"),
                   axis.title = element_blank())
     })
-    
-    output$bike_pointPlot <- renderPlot({
-        
-        base_filter2() %>% 
-            filter(!is.na(temp_air),
-                   between(temp_water, input$water_temp_bike[1], input$water_temp_bike[2]),
-                   between(temp_air, input$air_temp_bike[1], input$air_temp_bike[2])) %>% 
-            ggplot(aes(y = position_perc, x = bike_position_perc)) +
-            geom_point(size = 1.5, alpha = 0.05)+
-            geom_smooth(method = "lm", size = 1.5)+
-            theme_bw()
-    })
-    
+    #-----run density   
     output$run_densityPlot <- renderPlot({ 
         
-        filtered_run <- base_filter2() %>% 
-            filter(!is.na(temp_air), 
-                   between(temp_water, input$water_temp_run[1], input$water_temp_run[2]),
-                   between(temp_air, input$air_temp_run[1], input$air_temp_run[2])) %>% 
+        filtered_run <-disc_filt_func(base_filter2()) %>% 
             mutate(time_cat = "Filtered")
         
         average_run <- triathlon_data %>% 
@@ -359,151 +336,251 @@ shinyServer(function(input, output) {
                   legend.background = element_rect(fill = "white", linetype = "solid", colour = "white"),
                   axis.title = element_blank())
         
+    }) 
+    
+    #------------------correlation calculations & outputs---------------------    
+    output$swim_corr <- renderPrint({
+        
+        sw_cor <- disc_filt_func(base_filter2()) %>% 
+            filter(wetsuit != T) %>% 
+            select(c(position_perc, swim_position_perc)) %>% 
+            cor()
+        sw_cor <- sw_cor[1,2]
+        sw_cor
+        
     })
     
-    output$run_pointPlot <- renderPlot({
+    output$bike_corr <- renderPrint({
         
-        base_filter2() %>% 
-            filter(!is.na(temp_air),  
-                   run_time > hms::as_hms("00:00:00"),
-                   between(temp_water, input$water_temp_run[1], input$water_temp_run[2]),
-                   between(temp_air, input$air_temp_run[1], input$air_temp_run[2])) %>% 
-            ggplot(aes(y = position_perc, x = run_position_perc)) +
-            geom_point(size = 1.5, alpha = 0.05)+
+        bk_cor <- disc_filt_func(base_filter2()) %>% 
+            select(c(position_perc, bike_position_perc)) %>% 
+            cor()
+        bk_cor <- bk_cor[1,2]
+        bk_cor
+        
+    })
+    
+    output$run_corr <- renderPrint({
+        
+        rn_cor <- disc_filt_func(base_filter2()) %>% 
+            select(c(position_perc, run_position_perc)) %>% 
+            cor()
+        rn_cor <- rn_cor[1,2]
+        rn_cor
+        
+    })
+    
+    #------------------scatter/line corr graphs---------------------
+    
+    #-----swim scatter    
+    output$swim_pointPlot <- renderPlotly({
+        
+        disc_filt_func(base_filter2()) %>% 
+            filter(wetsuit != T) %>% 
+            ggplot(aes(y = position_perc, x = swim_position_perc)) +
+            geom_point(size = 1.5, alpha = 0.1)+
             geom_smooth(method = "lm", size = 1.5)+
-            theme_bw()
+            theme_bw()+
+            labs(x = "Swim Percent Placement",
+                 y = "Overall Percent Placement")
     })
     
-    output$overall_choropleth <- renderPlotly({
+    
+    #-----bike scatter       
+    output$bike_pointPlot <- renderPlotly({
         
-        percentile <- function(data, inputs){ 
-            if (inputs == 10){
-                
-                filter(data, position_perc <= 10)
-            }
-            else if(inputs ==90){
-                
-                filter(data, position_perc >= 90)
-            }
-            
-        }
-        
-        filtered_perc <- triathlon_data %>%
-            percentile(input$top_bottomperc) %>% 
-            count(FIPS, name = "numb_per_country_filtered")
-        
-        
-        all_perc <- triathlon_data %>% 
-            count(FIPS, name = "numb_per_country_total")
-        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
-        
-        comb_perc <- comb_perc %>% 
-            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
-        
-        comb_perc %>% 
-            plot_geo() %>% 
-            choropleth_color(input$top_bottomperc) %>% 
-            colorbar(title = "% of Country Total")
-        
+        disc_filt_func(base_filter2()) %>% 
+            ggplot(aes(y = position_perc, x = bike_position_perc)) +
+            geom_point(size = 1.5, alpha = 0.1)+
+            geom_smooth(method = "lm", size = 1.5)+
+            theme_bw()+
+            labs(x = "Bike Percent Placement",
+                 y = "Overall Percent Placement")
     })
     
-    output$swim_choropleth <- renderPlotly({
+    #-----run scatter    
+    output$run_pointPlot <- renderPlotly({
         
-        percentile <- function(data, inputs){ 
-            if (inputs == 10){
-                
-                filter(data, swim_position_perc <= 10)
-            }
-            else if(inputs ==90){
-                
-                filter(data, swim_position_perc >= 90)
-            }
-            
-        }
-        
-        filtered_perc <- triathlon_data %>%
-            percentile(input$top_bottomperc) %>% 
-            count(FIPS, name = "numb_per_country_filtered")
-        
-        
-        all_perc <- triathlon_data %>% 
-            count(FIPS, name = "numb_per_country_total")
-        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
-        
-        comb_perc <- comb_perc %>% 
-            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
-        
-        comb_perc %>% 
-            plot_geo() %>% 
-            choropleth_color(input$top_bottomperc) %>% 
-            colorbar(title = "% of Country Total")
-        
+        disc_filt_func(base_filter2()) %>% 
+            ggplot(aes(y = position_perc, x = run_position_perc)) +
+            geom_point(size = 1.5, alpha = 0.1)+
+            geom_smooth(method = "lm", size = 1.5)+
+            theme_bw()+
+            labs(x = "Run Percent Placement",
+                 y = "Overall Percent Placement")
     })
     
-    output$bike_choropleth <- renderPlotly({
+    #------------------choropleths--------------------- 
+
+    output$overall_choropleth <- renderLeaflet({
         
-        percentile <- function(data, inputs){ 
-            if (inputs == 10){
-                
-                filter(data, bike_position_perc <= 10)
-            }
-            else if(inputs ==90){
-                
-                filter(data, bike_position_perc >= 90)
-            }
+        if (input$top_bottomperc == 10){
             
+            leaflet(top_overall_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_overall_top(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_top_overall,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_overall_top, values = ~percent_total, opacity = 0.9, title = "Top 10%", position = "bottomleft")
         }
-        
-        filtered_perc <- triathlon_data %>%
-            percentile(input$top_bottomperc) %>% 
-            count(FIPS, name = "numb_per_country_filtered")
-        
-        
-        all_perc <- triathlon_data %>% 
-            count(FIPS, name = "numb_per_country_total")
-        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
-        
-        comb_perc <- comb_perc %>% 
-            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
-        
-        comb_perc %>% 
-            plot_geo() %>% 
-            choropleth_color(input$top_bottomperc) %>% 
-            colorbar(title = "% of Country Total")
+        else if(input$top_bottomperc ==90){
+            
+            leaflet(bottom_overall_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_overall_bottom(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_bottom_overall,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_overall_bottom, values = ~percent_total, opacity = 0.9, title = "Bottom 10%", position = "bottomleft")
+        }
         
     })
     
-    output$run_choropleth <- renderPlotly({
+    output$swim_choropleth <- renderLeaflet({
         
-        percentile <- function(data, inputs){ 
-            if (inputs == 10){
-                
-                filter(data, run_position_perc <= 10)
-            }
-            else if(inputs ==90){
-                
-                filter(data, run_position_perc >= 90)
-            }
+        if (input$top_bottomperc == 10){
             
+            leaflet(top_swim_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_swim_top(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_top_swim,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_swim_top, values = ~percent_total, opacity = 0.9, title = "Top 10%", position = "bottomleft")
+        }
+        else if(input$top_bottomperc ==90){
+            
+            leaflet(bottom_swim_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_swim_bottom(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_bottom_swim,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_swim_bottom, values = ~percent_total, opacity = 0.9, title = "Bottom 10%", position = "bottomleft")
         }
         
-        filtered_perc <- triathlon_data %>%
-            percentile(input$top_bottomperc) %>% 
-            count(FIPS, name = "numb_per_country_filtered")
+    })
+    
+    output$bike_choropleth <- renderLeaflet({
         
+        if (input$top_bottomperc == 10){
+            
+            leaflet(top_bike_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_bike_top(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_top_bike,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_bike_top, values = ~percent_total, opacity = 0.9, title = "Top 10%", position = "bottomleft")
+        }
+        else if(input$top_bottomperc ==90){
+            
+            leaflet(bottom_bike_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_bike_bottom(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_bottom_bike,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_bike_bottom, values = ~percent_total, opacity = 0.9, title = "Bottom 10%", position = "bottomleft")
+        }
         
-        all_perc <- triathlon_data %>% 
-            count(FIPS, name = "numb_per_country_total")
-        comb_perc <- left_join(filtered_perc, all_perc, by = "FIPS")
+    })
+    
+    output$run_choropleth <- renderLeaflet({
         
-        comb_perc <- comb_perc %>% 
-            mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
-        
-        comb_perc %>% 
-            plot_geo() %>% 
-            choropleth_color(input$top_bottomperc) %>% 
-            colorbar(title = "% of Country Total")
-        
+        if (input$top_bottomperc == 10){
+            
+            leaflet(top_run_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_run_top(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_top_run,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_run_top, values = ~percent_total, opacity = 0.9, title = "Top 10%", position = "bottomleft")
+        }
+        else if(input$top_bottomperc ==90){
+            
+            leaflet(bottom_run_perc)%>% 
+                addTiles() %>%
+                setView(lat = 10, lng=0, zoom = 2) %>% 
+                addPolygons(fillColor = ~mypalette_run_bottom(percent_total),
+                            highlightOptions = highlightOptions(color = "white", weight = 3, bringToFront = T),
+                            stroke = T,
+                            fillOpacity = 0.9,
+                            color = "white",
+                            weight = 0.9,
+                            label = mytext_bottom_run,
+                            labelOptions = labelOptions(
+                                style = list("font-weight" = "normal", padding = "3px 8px"),
+                                textsize = "13px"
+                            )
+                ) %>% 
+                addLegend(data, pal = mypalette_run_bottom, values = ~percent_total, opacity = 0.9, title = "Bottom 10%", position = "bottomleft")
+        }
     })
     
 })

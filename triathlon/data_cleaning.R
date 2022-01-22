@@ -205,3 +205,128 @@ triathlon_data <- triathlon_data %>%
 
 write_csv2(triathlon_data, "data/cleaned_data.csv")
 write_rds(triathlon_data, "data/cleaned_data.RDS")
+
+#--------------choropleth data sets--------------
+
+library(sf)
+library(leaflet)
+
+#------geometry file
+world_map <- st_read("data/TM_WORLD_BORDERS_SIMPL-0.3/TM_WORLD_BORDERS_SIMPL-0.3.shp")
+world_map <- world_map %>% 
+    select(-c(FIPS, ISO2))
+
+#------variables 
+
+all_perc <- triathlon_data %>% 
+    count(FIPS, name = "numb_per_country_total")
+
+#------overall
+#top
+filtered_top_overall <- triathlon_data %>%
+    filter(position_perc <= 10) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+
+top_overall_perc <- left_join(filtered_top_overall, all_perc, by = "FIPS")
+top_overall_perc <- right_join(world_map, top_overall_perc, by = c("ISO3" = "FIPS"))
+
+top_overall_perc <- top_overall_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(top_overall_perc, "data/top_overall_perc.rds")
+
+#bottom
+filtered_bottom_overall <- triathlon_data %>%
+    filter(position_perc >= 90) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+
+bottom_overall_perc <- left_join(filtered_bottom_overall, all_perc, by = "FIPS")
+bottom_overall_perc <- right_join(world_map, bottom_overall_perc, by = c("ISO3" = "FIPS"))
+
+bottom_overall_perc <- bottom_overall_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(bottom_overall_perc, "data/bottom_overall_perc.rds")
+
+#------swim
+#top
+filtered_top_swim <- triathlon_data %>%
+    filter(swim_position_perc <= 10) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+top_swim_perc <- left_join(filtered_top_swim, all_perc, by = "FIPS")
+top_swim_perc <- right_join(world_map, top_swim_perc, by = c("ISO3" = "FIPS"))
+
+top_swim_perc <- top_swim_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(top_swim_perc, "data/top_swim_perc.rds")
+
+#bottom
+filtered_bottom_swim <- triathlon_data %>%
+    filter(swim_position_perc >= 90) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+bottom_swim_perc <- left_join(filtered_bottom_swim, all_perc, by = "FIPS")
+bottom_swim_perc <- right_join(world_map, bottom_swim_perc, by = c("ISO3" = "FIPS"))
+
+bottom_swim_perc <- bottom_swim_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(bottom_swim_perc, "data/bottom_swim_perc.rds")
+
+#------bike
+#top
+filtered_top_bike <- triathlon_data %>%
+    filter(bike_position_perc <= 10) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+top_bike_perc <- left_join(filtered_top_bike, all_perc, by = "FIPS")
+top_bike_perc <- right_join(world_map, top_bike_perc, by = c("ISO3" = "FIPS"))
+
+top_bike_perc <- top_bike_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(top_bike_perc, "data/top_bike_perc.rds")
+
+#bottom
+filtered_bottom_bike <- triathlon_data %>%
+    filter(bike_position_perc >= 90) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+bottom_bike_perc <- left_join(filtered_bottom_bike, all_perc, by = "FIPS")
+bottom_bike_perc <- right_join(world_map, bottom_bike_perc, by = c("ISO3" = "FIPS"))
+
+bottom_bike_perc <- bottom_bike_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(bottom_bike_perc, "data/bottom_bike_perc.rds")
+
+#------run
+#top
+filtered_top_run <- triathlon_data %>%
+    filter(run_position_perc <= 10) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+top_run_perc <- left_join(filtered_top_run, all_perc, by = "FIPS")
+top_run_perc <- right_join(world_map, top_run_perc, by = c("ISO3" = "FIPS"))
+
+top_run_perc <- top_run_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(top_run_perc, "data/top_run_perc.rds")
+
+#bottom
+filtered_bottom_run <- triathlon_data %>%
+    filter(run_position_perc >= 90) %>% 
+    count(FIPS, name = "numb_per_country_filtered")
+
+bottom_run_perc <- left_join(filtered_bottom_run, all_perc, by = "FIPS")
+bottom_run_perc <- right_join(world_map, bottom_run_perc, by = c("ISO3" = "FIPS"))
+
+bottom_run_perc <- bottom_run_perc %>% 
+    mutate(percent_total = numb_per_country_filtered/numb_per_country_total*100)
+
+write_rds(bottom_run_perc, "data/bottom_run_perc.rds")

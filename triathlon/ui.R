@@ -53,6 +53,8 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                                                    max = 100,
                                                                    value = c(1, 100)
                                                        ),
+                                                       br(),
+                                                       h5(strong("For Bottom Two Graphs Only")),
                                                        sliderInput("slider_year",
                                                                    "Year (event locations & age groups): ",
                                                                    min = 2009,
@@ -65,8 +67,8 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                           ),
                                           
                                           # Show a plot of the generated distribution
-                                          mainPanel("Overall Race",
-                                                           fluidRow(
+                                          mainPanel(
+                                              fluidRow(
                                                                tabsetPanel(
                                                                    tabPanel("Average Race Times",
                                                                             fluidRow(h4("Average Race Times by Year", align = 'center'),
@@ -142,8 +144,13 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                                                               value = c(45, 95))),
                                                            column(width = 9,
                                                                   h4("Swim Position vs Final Position", align = 'center'),
-                                                                  plotOutput("swim_pointPlot"),
-                                                                  br(),
+                                                                  plotlyOutput("swim_pointPlot"),
+                                                                  fluidRow(
+                                                                      column(width = 4,
+                                                                             h5(strong("Correlation"), align = "left"),
+                                                                             verbatimTextOutput("swim_corr")
+                                                                             )
+                                                                  ),
                                                                   br())
                                                        ),
                                                        fluidRow(
@@ -167,8 +174,13 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                                                               value = c(45, 95))),
                                                            column(width = 9,
                                                                   h4("Bike Position vs Final Position", align = 'center'),
-                                                                  plotOutput("bike_pointPlot"),
-                                                                  br(),
+                                                                  plotlyOutput("bike_pointPlot"),
+                                                                  fluidRow(
+                                                                      column(width = 4,
+                                                                             h5(strong("Correlation"), align = "left"),
+                                                                             verbatimTextOutput("bike_corr")
+                                                                      )
+                                                                  ),
                                                                   br())
                                                        ),
                                                        fluidRow(
@@ -192,8 +204,13 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                                                               value = c(45, 95))),
                                                            column(width = 9,
                                                                   h4("Run Position vs Final Position", align = 'center'),
-                                                                  plotOutput("run_pointPlot"),
-                                                                  br(),
+                                                                  plotlyOutput("run_pointPlot"),
+                                                                  fluidRow(
+                                                                      column(width = 4,
+                                                                             h5(strong("Correlation"), align = "left"),
+                                                                             verbatimTextOutput("run_corr")
+                                                                      )
+                                                                  ),
                                                                   br())
                                                        ),
                                                        fluidRow(
@@ -219,22 +236,22 @@ shinyUI(fluidPage(theme = shinytheme("superhero"),
                                                       tabPanel("Overall",
                                                                fluidRow(
                                                                    column(width = 12,
-                                                                          plotlyOutput("overall_choropleth"))
+                                                                          leafletOutput("overall_choropleth", height = "100vh"))
                                                                )),
                                                       tabPanel("Swim",
                                                                fluidRow(
                                                                    column(width = 12,
-                                                                          plotlyOutput("swim_choropleth"))
+                                                                          leafletOutput("swim_choropleth", height = "100vh"))
                                                                )),
                                                       tabPanel("Bike",
                                                                fluidRow(
                                                                    column(width = 12,
-                                                                          plotlyOutput("bike_choropleth"))
+                                                                          leafletOutput("bike_choropleth", height = "100vh"))
                                                                )),
                                                       tabPanel("Run",
                                                                fluidRow(
                                                                    column(width = 12,
-                                                                          plotlyOutput("run_choropleth"))
+                                                                          leafletOutput("run_choropleth", height = "100vh"))
                                                                ))
                                                   )
                                               ))
