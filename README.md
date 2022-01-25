@@ -3,9 +3,9 @@
 
 ### Motivation
 
-At the beginning of the pandemic with the closure of gyms, emphasis on social distancing, and extra free time, I took up training for triathlons. Like most people starting something new, I found workouts from whatever website was listed first on google and hit the pavement. However, the thing with endurance sports is that they tend to give the mind a lot of time to wander. You’ve got miles to go and you need to distract yourself from the sound of your own wheezing somehow.
+At the beginning of the pandemic with the closure of gyms, emphasis on social distancing, and extra free time, I took up training for triathlons. Like most people starting something new, I grabbed workouts from the first website listed on google. However, the thing with endurance sports is that they tend to give the mind a lot of time to wander. You’ve got miles to go and you need to distract yourself from the sound of your own wheezing somehow.
 
-Specifically, I began to wonder about triathlons themselves. Are all disciplines equally as important? Do I really need to run that much or can I stay in the air-conditioning on the bike trainer instead? Is training in this swamp of a state going to give me an edge or does that matter in the long run? Is that pain in my side normal or am I dying? The usual.  
+Specifically, I began to wonder about triathlons themselves. Are all disciplines equally as important? Do I really need to run that much or can I stay in the air-conditioning on the bike trainer instead? Is training in this swamp of a state I live in going to give me an edge or does that matter in the long run? Is that pain in my side normal or am I dying? The usual.  
 
 With this project, I hoped to answer some of these questions, or at least sound smarter in the process.
 
@@ -13,7 +13,7 @@ With this project, I hoped to answer some of these questions, or at least sound 
 
 - Broadly, what are the trends, if any, in the sport as a whole?
 - What are the correlations for performance in one discipline to overall race success?
-- Does the country you come from/train in act as a predictor for success?
+- What countries are most ?
 
 ### Known Issues And Challenges
 
@@ -28,7 +28,7 @@ Inconsistent record keeping also posed a problem affecting the size of the data 
 - Records of air and water temperature have only relatively recently been available 
 - Instances of times not being recorded 
 - Mislabeling of events
-- No events available after 2019 in API, 2020 aside
+- No events available after 2019 in API
 
 ### Approach
 
